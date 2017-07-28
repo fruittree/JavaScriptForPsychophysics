@@ -1,0 +1,466 @@
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<script type="text/javascript" src="jquery/jquery-1.9.1.js"></script>
+	<script src="plotly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="Experiment.css">
+    <script src="numericjs/numeric-1.2.6.min.js"></script>
+	<script type="text/javascript">//<![CDATA[   
+	$(window).load(function(){
+		var subject = 'test';
+		var blockNumber  = 1;
+		var heights = ["0.01", "0.02", "0.03", "0.04", "0.05"];
+		var originaldensities = ["74", "76", "79", "82", "84", "87", "90", "93", "97", "100", "103", "107", "111", "114", "118", "122", "127", "131", "136", "140", "145", "150", "155", "160", "166", "172", "178", "184", "190", "197", "203", "210", "218", "225", "233", "241", "249", "258", "266", "276", "285", "295"];
+		//var densities = ["74", "79",  "84",  "90",  "97",  "103",  "111",  "118",  "127", "136", "145", "155", "166", "178", "190", "203", "218", "233", "249", "266", "285", "295"];
+		// every fourth. 
+		//var densities = ["74", "84", "97", "111", "127", "145","166", "190", "218", "249", "285", "295"];
+		var densities = ["74","82","90","100","111","122","136","150","166","184","203","225","249","276","295"];
+		var blurs = ["0.2", "0.4", "0.6", "0.8", "1.0", "1.2", "1.4", "1.6", "1.8", "2.0", "2.2", "2.4", "2.6", "2.8", "3.0"];
+		var illuminations = ["sidelit","backlit"];
+        var db_path = 'png';
+		var numHeights = heights.length;
+		var numDensities = densities.length;
+		var numBlurs = blurs.length;
+		var numIlluminations = illuminations.length;
+		//densities and blurs are the values that differ between match and target. 
+		var matchblurindex = 4; //match blur is always at a fixed value.
+		//var targetdensities = ["114","140","178","218"];
+		var targetdensities = ["111","150","184","225"]; 
+		var targetblurs = ["0.4","1.0","2.0","2.8"];
+		var targetheights = heights;
+		var t_blurs = [];
+		var t_densities = [];
+		var t_heights = [];
+		var t_illuminations = [];
+		
+		///generate randomized conditions. 
+		for (var k=0;k<numIlluminations;k++) {
+			for (var n=0;n<numHeights;n++){
+				for(var i=0;i<targetdensities.length;i++){
+					for(var j=0;j<targetblurs.length;j++){
+						t_blurs.push(targetblurs[j]);
+					}   			
+		    	}
+		    ;}
+		}
+	//target densities
+		for (var k=0;k<numIlluminations;k++){
+		    for (var n=0;n<numHeights;n++){
+				for(var i=0;i<targetdensities.length;i++){
+					for(var j=0;j<targetblurs.length;j++){
+						t_densities.push(targetdensities[i]);
+					}
+		    			
+		    	}
+		    ;}
+	}
+
+    for (var k=0;k<numIlluminations;k++){
+		 for (var n=0;n<numHeights;n++){
+				for(var i=0;i<targetdensities.length;i++){
+					for(var j=0;j<targetblurs.length;j++){
+						t_heights.push(heights[n]);
+					}
+		    			
+		    	}
+		    ;}
+	}
+
+	for (var k=0;k<numIlluminations;k++){
+	    for (var n=0;n<numHeights;n++){
+			for(var i=0;i<targetdensities.length;i++){
+				for(var j=0;j<targetblurs.length;j++){
+					t_illuminations.push(illuminations[k]);
+				}
+	    			
+	    	}
+	    ;}
+	 }
+		var currentHeight = 0;
+		var currentBlur = matchblurindex ;
+		var currentDensity = 1;
+		var currentIllumination = 0;
+
+		var matchdensityindex = 1;
+		var targetheightindex = 0;
+
+		var totalconditions = t_blurs.length;
+		var curTrial = 0;
+		var result = [];
+		var editing = false;
+		//shuffle an array
+		Array.prototype.shuffle = function() {
+  			var tmp, rand;
+  			for(var i =0; i < this.length; i++){
+    			rand = Math.floor(Math.random() * this.length);
+   			 	tmp = this[i]; 
+    			this[i] = this[rand]; 
+    			this[rand] = tmp;
+  				}
+		}
+		var indices = [];
+
+		for (var i = 0; i <= totalconditions-1; i++) {
+		    indices.push(i);
+		}
+		indices.shuffle();
+
+		// here ask for user input and pass the subject name. 
+		$(function(){
+	    	subject = prompt("Please enter your initials");
+		});
+
+		// final result object. 
+		var data = {
+			subject:subject,
+			lighting: illuminations,
+		 	matchblurindex: matchblurindex,
+		 	trialnumber:[],
+		 	response:[],
+		 	targetblurvalues:[],
+		 	targetvalueindex:[],
+		 	targetheightindex:[],
+		 	targetilluminations:[],
+		 	targetblurindex:[],
+		 	targetvalue:[], //target densities
+		 	targetheightsvalues:[]
+		};
+
+		//alert(targetdensities);
+		// User clicks on a cell
+		$('td').click(function() {
+			currCell = $(this);
+			edit();
+		});
+		// Show edit box
+		function edit() {
+			editing = true;
+			currCell.toggleClass("editing");
+			$('#edit').show();
+			$('#edit #text').val(currCell.html());
+			$('#edit #text').select();
+		}
+		// User saves edits
+		$('#edit form').submit(function(e) {
+			editing = false;
+			e.preventDefault();
+			// Ajax to update value in database
+			$.get('#', '', function() {
+				$('#edit').hide();
+				currCell.toggleClass("editing");
+				currCell.html($('#edit #text').val());
+				currCell.focus();
+			});
+		});
+// this is for the user to go to the Next trial, where it updates both match and target. 		
+  $("#Next").click(function(){
+  	 	var button = $(this);
+
+  	 	if (button.text() === "Start") {
+            button.text("Next");
+        }
+        // if trial number is less than the total trial number,start a new pair. 
+        if (curTrial <= totalconditions){
+        	curTrial = curTrial + 1; 
+        	$('#curTrial').text(curTrial); 
+        	if(curTrial == 41){
+        		alert('Time for a break, grab a coffee and click to resume!')
+        	}
+	        // generate indices for each parameter from the condition array. 
+	        // if (curTrial>125){
+	        // 	currentIllumination = 1;
+	        // }
+	        if (t_densities[curTrial-1]>145){
+	        	matchdensityindex = Math.floor(Math.random() * (7 - 1));
+
+	        }
+	        else if(t_densities[curTrial-1]<145){
+	        	matchdensityindex = Math.floor(Math.random() * (14 - 7)) + 7;
+	        }
+		    // set the currentDensity of the next image to a random value. 
+	        //currentDensity = matchdensityindex;
+	        // targetdensityindex = Math.floor(((curTrial-1)%(targetdensities.length*targetblurs.length))/numHeights);
+	        // targetblurindex = (curTrial-1)%targetdensities.length;
+
+	        // targetheightindex = Math.floor((curTrial-1)/(targetdensities.length*targetblurs.length));  
+	        // current trial target densities. 
+	        //$('span#targetdensity').text(t_densities[curTrial-1]);
+	        // $('span#targetblur').text(t_blurs[curTrial-1]);
+	        //$('span#targetheight').text(t_heights[curTrial-1]);
+	        // // match and target has the same relief height and illumination. Match has a fixed blur value that is different the target. Observer adjust densities of match. 
+			$('img#match').attr('src', 'png_cropped/soap_map_b' + blurs[matchblurindex] + '_s' + t_heights[indices[curTrial-1]] + '_' + t_illuminations[indices[curTrial-1]] + '_d' + densities[matchdensityindex] + '_q4096.png');
+ 			$('img#sample').attr('src', 'png_cropped/soap_map_b' + t_blurs[indices[curTrial-1]] + '_s' + t_heights[indices[curTrial-1]] + '_' + t_illuminations[indices[curTrial-1]] + '_d' + t_densities[indices[curTrial-1]] + '_q4096.png');
+ 			
+ 			  // save the user's responses of previous trials.  
+ 			  	if (curTrial<=totalconditions){
+			        data.trialnumber.push(curTrial-1); 
+			        data.targetilluminations.push(t_illuminations[indices[curTrial-1]])
+			        data.targetvalue.push(t_densities[indices[curTrial-1]]);
+			        data.targetblurvalues.push(t_blurs[indices[curTrial-1]]);
+			        data.targetheightsvalues.push(t_heights[indices[curTrial-1]]);
+			        data.targetvalueindex.push((t_densities[indices[curTrial-1]]/10));		
+			        data.targetblurindex.push(t_blurs[indices[curTrial-1]]*10+10); 		  
+			        data.targetheightindex.push(t_heights[indices[curTrial-1]]*200+10);
+		    }
+
+		        if (curTrial>1){
+		        	data.response.push(densities[currentDensity])
+		        }		        
+	    		//currentDensity = matchdensityindex;
+        }
+       // if the experiment is over, plot the results and save plot. 
+      else if (curTrial>totalconditions){
+      	$('#curTrial').text(curTrial-1); 
+        if (button.text() === "Next") {
+            button.text("You are done!");
+        }	
+       document.getElementById("finalresult").innerHTML = data.response;
+       document.getElementById("finalresulttarget").innerHTML = data.targetvalue;
+       //////Generate the plot after experiment is done. 
+       TESTER = document.getElementById('dataplot');
+		var trace1 = {
+			  x: data.targetvalue,
+			  y: data.response,
+			  mode: 'markers',
+			  marker:{
+			  	size:data.targetheightindex,
+			  	color:data.targetblurindex
+			  }
+			};	
+
+		var trace2 = {
+			  x: numeric.linspace(60,260),
+			  y: numeric.linspace(60,260),
+			  mode: 'scatter',
+			    marker: {
+			    color: 'rgb(122, 142, 142)',
+			    size: 12
+			  },
+			};
+		var datamatrix = [ trace1,trace2 ];
+		var layout = {
+		  title:'Scatter Plot: darker color has higher blur',
+		  showlegend: false,
+		  xaxis: {
+		  	range: [60, 260],
+		    title: 'Target density',
+		    zeroline: true
+		  },
+		   yaxis: {
+		   	range: [60, 260],
+		    title: 'Match density',
+		    zeroline: true
+		  }
+		};
+		var trace3 = {
+			  x: data.targetheightindex,
+			  y: data.response,
+			  mode: 'markers',
+			marker:{
+				size:data.targetvalueindex,
+			  	color:data.targetblurindex
+			  }
+			};	
+		datamatrix2 = [trace3];	
+		var layout2 = {
+		  title:'Match density versus Height',
+		  showlegend: false,
+		  xaxis: {
+		  	range: [10, 24],
+		    title: 'Target heights',
+		    zeroline: true
+		  },
+		   yaxis: {
+		   	range: [60, 260],
+		    title: 'Match density',
+		    zeroline: true
+		  }
+		};
+		//Plotly.newPlot(TESTER, datamatrix, layout);
+		Plotly.newPlot(TESTER, datamatrix2, layout2);
+		//starting the sever side communication. 
+		//save the data to the file evoking serverside code.
+		// save data object as JSON. 
+		$.ajax
+        ({
+            type: "POST",
+            dataType : 'json',
+            async: false,
+            url: 'phpcode/saveresults.php',
+            data: { data: JSON.stringify(data) },
+            success: function () {alert("Thanks!"); },
+            failure: function() {alert("Error!");}
+        }); 
+        // end the communicaiton with server. 
+	}//here is end of plotting, saving data, etc.
+
+       });
+// user click on button to change images
+$(function() {
+  var changed = false;
+  $('#densityUp, #densityDown').click(function () {
+  	//alert(currentDensity);
+    if (this.id == 'densityDown') {
+       if (currentDensity + 1 < numDensities) {
+       		$('#densityUp').css('background', '#768d87');
+			currentDensity = currentDensity + 1;
+			changed = true;
+		}
+		else if (currentDensity+1  == numDensities){
+			$(this).css('background', '#D3D3D3');
+		}
+    }
+    else if (this.id == 'densityUp') {
+       if (currentDensity - 1 > -1) {
+       	    $('#densityDown').css('background', '#768d87');
+			currentDensity = currentDensity - 1;
+			changed = true;
+			
+		}
+		else if (currentDensity  == 0){
+			$(this).css('background', '#D3D3D3');
+		}
+	}
+  // If we didn't hit a boundary, update the current cell
+		if (changed) {
+			//$('span#height').text(targetheights[targetheightindex]);
+			//$('span#blur').text(blurs[4]);
+			//$('span#density').text(densities[currentDensity]);
+			//$('span#illumination').text(illuminations[currentIllumination])
+			$('img#match').attr('src', 'png_cropped/soap_map_b' + blurs[matchblurindex] + '_s' + t_heights[indices[curTrial-1]] + '_' + t_illuminations[indices[curTrial-1]] + '_d' + densities[currentDensity] + '_q4096.png');
+		}
+  });
+ });
+// User navigates table using keyboard
+	$(document).keydown(function(e) {
+			var c = "";
+			var changed = false;
+			if (e.which == 38) {
+				// Right Arrow
+				if (currentBlur + 1 < numBlurs) {
+					//currentBlur = currentBlur + 1;
+					//changed = true;
+				}
+			} else if (e.which == 40) {
+				// Left Arrow
+				if (currentBlur - 1 > -1) {
+					//currentBlur = currentBlur - 1;
+					//changed = true;
+				}
+			} else if (e.which == 39) {
+				// Right Arrow
+				if (currentDensity + 1 < numDensities) {
+					$('#densityUp').css('background', '#768d87');
+					currentDensity = currentDensity + 1;
+					changed = true;
+				}
+				else if (currentDensity+1  == numDensities){
+					$('#densityDown').css('background', '#D3D3D3');
+			}
+			} else if (e.which == 37) {
+				// left Arrow
+				if (currentDensity - 1 > -1) {
+					$('#densityDown').css('background', '#768d87');
+					currentDensity = currentDensity - 1;
+					changed = true;
+				}
+			else if (currentDensity  == 0){
+			$('#densityUp').css('background', '#D3D3D3');
+		}
+			// } else if (e.which == 50) {
+			// 	// Key 2
+			// 	if (currentHeight + 1 < numHeights) {
+			// 		currentHeight = currentHeight + 1;
+			// 		changed = true;
+			// 	}
+			// } else if (e.which == 49) {
+			// 	// Key 1
+			// 	if (currentHeight - 1 > -1) {
+			// 		currentHeight = currentHeight - 1;
+			// 		changed = true;
+			// 	}
+			} else if (e.which == 69) {
+				// Key e
+				if (currentIllumination == 0) {
+					currentIllumination = 1;
+				} else {
+					currentIllumination = 0;
+				}
+				changed = true;
+			}
+			// If we didn't hit a boundary, update the current cell
+			if (changed) {
+				// $('span#height').text(targetheights[targetheightindex]);
+				// $('span#blur').text(blurs[4]);
+				$('span#density').text(densities[currentDensity]);
+				// $('span#illumination').text(illuminations[currentIllumination]);	
+				$('img#match').attr('src', 'png_cropped/soap_map_b' + blurs[matchblurindex] + '_s' + t_heights[indices[curTrial-1]] + '_' + t_illuminations[indices[curTrial-1]] + '_d' + densities[currentDensity] + '_q4096.png');
+			}
+
+		});//]]> 
+	});
+	</script>
+</head>
+<body>
+<!-- 	<div>press 1/2 to change height. Current: <span id="height">0.05</span></div>
+	<div>press left/right to change blur. Current: <span id="blur">0.00</span></div> -->
+	<!-- <div>press up/down to change density. Current: <span id="density">79</span></div> -->
+<!-- 	<div>press e to switch illumination. Current: <span id="illumination">sidelit</span></div> -->
+<!-- 	
+<img id="sample" src="png/soap_map_b0.0_s0.05_d100_q4096.png" /> -->
+<table style="margin-bottom:20pt" width = "600" border = "0">
+       <td>
+          <div id="instruction">
+                 <h2 style="margin-bottom:10pt" align = "center">Material Matching Task<br /></h2>
+                 <p id = "intro.part1"><font size = "3" face = "verdana" font color = #347235>The soap in the images are made with different materials. Your task is to match the material appearance of the soap on the right to match the appearance to the left.
+                 </br>
+                 </br>
+
+                 Please pay attention to subtle differences in the material properties.
+                 You can use either the left and right keys or the buttons to adjust the level of opacity of the match image. Please examine the images carefully before you hit "Next" button when your match will be recorded. </p>
+          </div>
+       </td>
+</table>
+<!-- <div><td><center><input id="btntest" type="button" class="StartButton" value="Start the experiment" 
+       onclick="return btntest_onclick()"/></center></td></div> -->
+	 <div id="images">
+                <center>
+                    <table border="0",  width="804" cellpadding="0">
+                        <tr>
+                            <td><center><b>Target</b><!-- <div>Target density: <span id="targetdensity">97</span></div><div>Target blur: <span id="targetblur">0.4</span></div>
+                            <div>Target height: <span id="targetheight">0.01</span></div> -->
+                            </center></td>
+                            <td><center> <b>Match</b></center></td>
+                        </tr>
+                  <tr>
+                <td align = "left" >
+                      <img id = "sample" src="png_cropped/soap_map_b0.4_s0.01_sidelit_d100_q4096.png" width = "590" height = "350"/>
+              	</td>
+               <td align = "right" >
+               <img id = "match" src="png_cropped/soap_map_b1.2_s0.02_sidelit_d131_q4096.png" width = "590" height = "350"/>
+                </td>
+        </table>
+        <div id='buttons'>      	
+			<input type = "button" id = "densityUp" class = 'myButton' value="LessOpaque" onClick="changeMatchValues('densityUp')">
+			<input type = "button" id = "densityDown" class = 'myButton' value="More Opaque" onClick="changeMatchValues('densityDown')">			
+ 		</div> 
+ 		          
+    
+      <div id='Nexttrial'>
+      	<TABLE>
+         Progress: Trial <span id="curTrial">0</span>/160</div>
+     	<button type="button" id = "Next" onClick="GotoNextTrial()" value ="Start" class="NextButton" >Start</button>
+     	</TABLE>
+     </div>
+ </br>
+     <div>Your final matched densities: <span id="finalresult"></span>
+     	Your target densities: <span id="finalresulttarget"></span></div
+</center>
+        </div>
+		<div id="dataplot" class="plot"></div>
+        </div> 
+        <img id="jpg-export"></img>
+
+</form>
+</body>
+</html>
