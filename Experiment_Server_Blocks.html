@@ -84,7 +84,7 @@
 		var matchdensityindex = 1;
 		var targetheightindex = 0;
 
-		var totalconditions = t_blurs.length;
+		var totalconditions = 40;
 		var curTrial = 0;
 		var result = [];
 		var editing = false;
@@ -100,21 +100,36 @@
 		}
 		var indices = [];
 
-		for (var i = 0; i <= totalconditions-1; i++) {
-		    indices.push(i);
-		}
-		indices.shuffle();
-
-		// here ask for user input and pass the subject name. 
+		// for (var i = 0; i <= totalconditions-1; i++) {
+		//     indices.push(i);
+		// }
+		// indices.shuffle();
+		
+		var my_json_new = [];
 		$(function(){
-	    	subject = prompt("Please enter your initials");
-		});
-
+			subject = prompt("Please enter your initials");	
+			blocknumber = prompt("Please enter the block number");	
+			base = "conditions/block";
+			filetype = '.json';
+			var conditionfile = base.concat(blocknumber, filetype);
+			$.ajax({
+	        url: conditionfile ,
+	        async: false,
+	        dataType: 'json',
+	        success: function(json){
+	            		for (var i = 0, len = json.length; i < len; i++) {
+	  					my_json_new.push(json[i]);
+	     	   }
+	     	}
+	    	 });
+	});
+	indices = my_json_new;
 		// final result object. 
 		var data = {
 			subject:subject,
-			lighting: illuminations,
+			blocknumber:blocknumber,
 		 	matchblurindex: matchblurindex,
+		 	conditionOrder: indices,
 		 	trialnumber:[],
 		 	response:[],
 		 	targetblurvalues:[],
@@ -163,9 +178,9 @@
         if (curTrial <= totalconditions){
         	curTrial = curTrial + 1; 
         	$('#curTrial').text(curTrial); 
-        	if(curTrial == 41){
-        		alert('Time for a break, grab a coffee and click to resume!')
-        	}
+        	// if(curTrial == 41){
+        	// 	alert('Time for a break, grab a coffee and click to resume!')
+        	// }
 	        // generate indices for each parameter from the condition array. 
 	        // if (curTrial>125){
 	        // 	currentIllumination = 1;
@@ -210,7 +225,7 @@
         }
        // if the experiment is over, plot the results and save plot. 
       else if (curTrial>totalconditions){
-      	$('#curTrial').text(curTrial-1); 
+      	//$('#curTrial').text(curTrial-1); 
         if (button.text() === "Next") {
             button.text("You are done!");
         }	
@@ -408,16 +423,14 @@ $(function() {
 <!-- 	<div>press e to switch illumination. Current: <span id="illumination">sidelit</span></div> -->
 <!-- 	
 <img id="sample" src="png/soap_map_b0.0_s0.05_d100_q4096.png" /> -->
-<table style="margin-bottom:20pt" width = "600" border = "0">
+<table style="margin-bottom:20pt" width = "800" border = "0">
        <td>
           <div id="instruction">
                  <h2 style="margin-bottom:10pt" align = "center">Material Matching Task<br /></h2>
-                 <p id = "intro.part1"><font size = "3" face = "verdana" font color = #347235>The soap in the images are made with different materials. Your task is to match the material appearance of the soap on the right to match the appearance to the left.
+                 <p id = "intro.part1"><font size = "3" face = "verdana" font color = #347235>The soap in the images are made with different materials. Your task is to match the appearance of the object in the right image to the left. To do so, you adjust the "opacity" of the object in the right image (match) to match the perceived translucency to the object on the left (target). 
                  </br>
                  </br>
-
-                 Please pay attention to subtle differences in the material properties.
-                 You can use either the left and right keys or the buttons to adjust the level of opacity of the match image. Please examine the images carefully before you hit "Next" button when your match will be recorded. </p>
+                 You can use either the left and right arrow keys or the buttons to adjust the match image. The left arrow key makes the object appear less opaque and the right key makes the object appear more opaque. Please examine the images carefully before you hit "Next" button when your match will be recorded. Notice, there will be four blocks of the experiment. Please press "start" button to start the trials.</p>
           </div>
        </td>
 </table>
@@ -448,7 +461,7 @@ $(function() {
     
       <div id='Nexttrial'>
       	<TABLE>
-         Progress: Trial <span id="curTrial">0</span>/160</div>
+         Progress: Trial <span id="curTrial">0</span>/40</div>
      	<button type="button" id = "Next" onClick="GotoNextTrial()" value ="Start" class="NextButton" >Start</button>
      	</TABLE>
      </div>
