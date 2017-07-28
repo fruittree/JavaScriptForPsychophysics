@@ -170,17 +170,16 @@
 // this is for the user to go to the Next trial, where it updates both match and target. 		
   $("#Next").click(function(){
   	 	var button = $(this);
-
   	 	if (button.text() === "Start") {
             button.text("Next");
         }
         // if trial number is less than the total trial number,start a new pair. 
         if (curTrial <= totalconditions){
         	curTrial = curTrial + 1; 
-        	$('#curTrial').text(curTrial); 
-        	// if(curTrial == 41){
-        	// 	alert('Time for a break, grab a coffee and click to resume!')
-        	// }
+        	if(curTrial<=totalconditions){
+        	$('#curTrial').text(curTrial);
+        	} 
+
 	        // generate indices for each parameter from the condition array. 
 	        // if (curTrial>125){
 	        // 	currentIllumination = 1;
@@ -199,7 +198,7 @@
 
 	        // targetheightindex = Math.floor((curTrial-1)/(targetdensities.length*targetblurs.length));  
 	        // current trial target densities. 
-	        //$('span#targetdensity').text(t_densities[curTrial-1]);
+	        //$('span#targetdensity').text(t_densities[indices[curTrial-1]]);
 	        // $('span#targetblur').text(t_blurs[curTrial-1]);
 	        //$('span#targetheight').text(t_heights[curTrial-1]);
 	        // // match and target has the same relief height and illumination. Match has a fixed blur value that is different the target. Observer adjust densities of match. 
@@ -221,11 +220,12 @@
 		        if (curTrial>1){
 		        	data.response.push(densities[currentDensity])
 		        }		        
-	    		//currentDensity = matchdensityindex;
-        }
-       // if the experiment is over, plot the results and save plot. 
-      else if (curTrial>totalconditions){
-      	//$('#curTrial').text(curTrial-1); 
+	    		currentDensity = matchdensityindex;
+
+	 if (curTrial>totalconditions){
+	 	$("img").hide();
+	 	$( "#buttons" ).hide();
+	 	$( "#instruction" ).hide();
         if (button.text() === "Next") {
             button.text("You are done!");
         }	
@@ -308,6 +308,9 @@
         }); 
         // end the communicaiton with server. 
 	}//here is end of plotting, saving data, etc.
+        }
+       // if the experiment is over, plot the results and save plot. 
+      
 
        });
 // user click on button to change images
@@ -407,7 +410,7 @@ $(function() {
 			if (changed) {
 				// $('span#height').text(targetheights[targetheightindex]);
 				// $('span#blur').text(blurs[4]);
-				$('span#density').text(densities[currentDensity]);
+				//$('span#density').text(densities[currentDensity]);
 				// $('span#illumination').text(illuminations[currentIllumination]);	
 				$('img#match').attr('src', 'png_cropped/soap_map_b' + blurs[matchblurindex] + '_s' + t_heights[indices[curTrial-1]] + '_' + t_illuminations[indices[curTrial-1]] + '_d' + densities[currentDensity] + '_q4096.png');
 			}
@@ -440,10 +443,10 @@ $(function() {
                 <center>
                     <table border="0",  width="804" cellpadding="0">
                         <tr>
-                            <td><center><b>Target</b><!-- <div>Target density: <span id="targetdensity">97</span></div><div>Target blur: <span id="targetblur">0.4</span></div>
+                            <td id = "target"><center><b>Target</b><!-- <div>Target density: <span id="targetdensity">97</span></div><div>Target blur: <span id="targetblur">0.4</span></div>
                             <div>Target height: <span id="targetheight">0.01</span></div> -->
                             </center></td>
-                            <td><center> <b>Match</b></center></td>
+                            <td id = "match"><center> <b>Match</b></center></td>
                         </tr>
                   <tr>
                 <td align = "left" >
