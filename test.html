@@ -1,0 +1,158 @@
+<html>
+<head>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script
+  src="http://code.jquery.com/jquery-1.12.4.min.js"
+  integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
+  crossorigin="anonymous"></script>
+<script
+  src="http://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+  integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+  crossorigin="anonymous"></script>
+</head>
+<body>
+    <img id="content" alt="" src="loading-icon.gif" style="display:block; margin-bottom: 10px">
+    <div id="density" style="margin-bottom: 10px; display: none">
+        Density control:
+        <!--<input id="densityVal" type="range">-->
+        <div id="densityVal" style="width:400px; margin: 10px"></div>
+    </div>
+    <div id="btns" style="display: none">
+        <button type="button" id="btnPNG">Reload PNG</button>
+        &nbsp;&nbsp;
+        <button type="button" id="btnJPG">Reload JPG</button>
+    </div>
+</body>
+<script type="text/javascript">
+$(function() {
+    'use strict';
+    var ready, loaded, current, usePNG;
+
+    var fileNames = [
+        "soap_map_b3.0_s0.05_sidelit_d74_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d76_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d79_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d82_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d84_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d87_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d90_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d93_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d97_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d100_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d103_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d107_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d111_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d114_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d118_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d122_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d127_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d131_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d136_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d140_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d145_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d150_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d155_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d160_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d166_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d172_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d178_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d184_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d190_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d197_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d203_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d210_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d218_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d225_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d233_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d241_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d249_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d258_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d266_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d276_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d285_q4096",
+        "soap_map_b3.0_s0.05_sidelit_d295_q4096"
+    ];
+
+    var images = new Array(fileNames.length);
+    var reload = function() {
+        $("#content").attr("src", "loading-icon.gif");
+        $("#density").css("display", "none");
+
+        ready = false;
+        loaded = 0; current = -1;
+
+        for ( var i = 0; i < fileNames.length; ++i ) {
+            images[i] = new Image();
+            images[i].onload = function() {
+                if ( ++loaded == fileNames.length ) {
+                    ready = true;
+                    current = 0;
+                    $("#content").attr("src", images[0].src);
+
+                    /*
+                    $("#densityVal").attr("min", 0);
+                    $("#densityVal").attr("max", fileNames.length - 1);
+                    $("#densityVal").val(0);
+                    $("#densityVal").on("input", function() {
+                        if ( ready ) $("#content").attr("src", images[current = $(this).val()].src);
+                    });
+                    */
+                    $("#densityVal").slider("option", "min", 0);
+                    $("#densityVal").slider("option", "max", fileNames.length - 1);
+                    $("#densityVal").slider("option", "value", 0);
+                    $("#densityVal").on("slide", function(event, ui) {
+                        if ( ready ) $("#content").attr("src", images[current = $(this).slider("option", "value")].src);
+                    });
+
+                    $("#density").css("display", "block");
+
+                    $("#btns").css("display", "block");
+                }
+            };
+            images[i].src = (usePNG ? "png/" + fileNames[i] + ".png" : "jpg/" + fileNames[i] + ".jpg")
+                + "?p=" + Math.floor(Date.now()/1000); // Adding a dummy query string to bypass caching
+        }
+    };
+
+    $("#densityVal").slider();
+
+    $("#btnJPG").click(function(e) {
+        e.preventDefault();
+        $("#btns").css("display", "none");
+        usePNG = false;
+        reload();
+    });
+
+    $("#btnPNG").click(function(e) {
+        e.preventDefault();
+        $("#btns").css("display", "none");
+        usePNG = true;
+        reload();
+    });
+
+    /*
+    $(document).keydown(function(e) {
+        switch ( e.which ) {
+        case 37: // Left
+            if ( ready && current > 0 ) {
+                $("#content").attr("src", images[--current].src);
+                $("#densityVal").val(current);
+            }
+            break;
+        case 39: // Right
+            if ( ready && current + 1 < images.length ) {
+                $("#content").attr("src", images[++current].src);
+                $("#densityVal").val(current);
+            }
+            break;
+        }
+    });
+    */
+
+    ready = false;
+    loaded = 0; current = -1;
+    usePNG = false;
+    reload();
+});
+</script>
+</html>
