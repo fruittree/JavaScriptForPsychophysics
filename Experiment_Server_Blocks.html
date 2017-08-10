@@ -3,11 +3,16 @@
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 	<script type="text/javascript" src="jquery/jquery-1.9.1.js"></script>
 	<script src="plotly/plotly-latest.min.js"></script>
+	<script
+  src="http://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+  integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+  crossorigin="anonymous"></script>
     <link rel="stylesheet" type="text/css" href="Experiment.css">
-    <script src="numericjs/numeric-1.2.6.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 	<script type="text/javascript">//<![CDATA[   
 	$(window).load(function(){
 		var subject = 'test';
+
 		var blockNumber  = 1;
 		var heights = ["0.01", "0.02", "0.03", "0.04", "0.05"];
 		var originaldensities = ["74", "76", "79", "82", "84", "87", "90", "93", "97", "100", "103", "107", "111", "114", "118", "122", "127", "131", "136", "140", "145", "150", "155", "160", "166", "172", "178", "184", "190", "197", "203", "210", "218", "225", "233", "241", "249", "258", "266", "276", "285", "295"];
@@ -17,7 +22,7 @@
 		var densities = ["74","82","90","100","111","122","136","150","166","184","203","225","249","276","295"];
 		var blurs = ["0.2", "0.4", "0.6", "0.8", "1.0", "1.2", "1.4", "1.6", "1.8", "2.0", "2.2", "2.4", "2.6", "2.8", "3.0"];
 		var illuminations = ["sidelit","backlit"];
-        var db_path = 'png';
+        var db_path = 'jpg';
 		var numHeights = heights.length;
 		var numDensities = densities.length;
 		var numBlurs = blurs.length;
@@ -32,6 +37,12 @@
 		var t_densities = [];
 		var t_heights = [];
 		var t_illuminations = [];
+		// slider values
+
+		$("#densityVal").slider();
+		$("#densityVal").slider("option", "min", 0);
+		$("#densityVal").slider("option", "max", numDensities - 1);
+		$("#densityVal").slider("option", "value", 0);
 		
 		///generate randomized conditions. 
 		for (var k=0;k<numIlluminations;k++) {
@@ -104,11 +115,22 @@
 		//     indices.push(i);
 		// }
 		// indices.shuffle();
-		
+		function getQueryVariable(variable)
+		{
+		       var query = window.location.search.substring(1);
+		       var vars = query.split("&");
+		       for (var i=0;i<vars.length;i++) {
+		               var pair = vars[i].split("=");
+		               if(pair[0] == variable){return pair[1];}
+		       }
+		       return(false);
+		}
+				
 		var my_json_new = [];
 		$(function(){
 			subject = prompt("Please enter your initials");	
-			blocknumber = prompt("Please enter the block number");	
+			//blocknumber = prompt("Please enter the block number");
+			blocknumber = getQueryVariable("blocknumber");	
 			base = "conditions/block";
 			filetype = '.json';
 			var conditionfile = base.concat(blocknumber, filetype);
@@ -169,6 +191,7 @@
 		});
 // this is for the user to go to the Next trial, where it updates both match and target. 		
   $("#Next").click(function(){
+  		$("#densityVal").slider("value", $("#densityVal").slider("option", "min"));
   	 	var button = $(this);
   	 	if (button.text() === "Start") {
             button.text("Next");
@@ -202,21 +225,20 @@
 	        // $('span#targetblur').text(t_blurs[curTrial-1]);
 	        //$('span#targetheight').text(t_heights[curTrial-1]);
 	        // // match and target has the same relief height and illumination. Match has a fixed blur value that is different the target. Observer adjust densities of match. 
-			$('img#match').attr('src', 'png_cropped/soap_map_b' + blurs[matchblurindex] + '_s' + t_heights[indices[curTrial-1]] + '_' + t_illuminations[indices[curTrial-1]] + '_d' + densities[matchdensityindex] + '_q4096.png');
- 			$('img#sample').attr('src', 'png_cropped/soap_map_b' + t_blurs[indices[curTrial-1]] + '_s' + t_heights[indices[curTrial-1]] + '_' + t_illuminations[indices[curTrial-1]] + '_d' + t_densities[indices[curTrial-1]] + '_q4096.png');
- 			
+	        var image_index = indices[curTrial-1];
+			$('img#match').attr('src', 'jpg/soap_map_b' + blurs[matchblurindex] + '_s' + t_heights[image_index] + '_' + t_illuminations[image_index ] + '_d' + densities[matchdensityindex] + '_q4096.jpg');
+ 			$('img#sample').attr('src', 'jpg/soap_map_b' + t_blurs[image_index] + '_s' + t_heights[image_index] + '_' + t_illuminations[image_index] + '_d' + t_densities[image_index] + '_q4096.jpg');			
  			  // save the user's responses of previous trials.  
  			  	if (curTrial<=totalconditions){
 			        data.trialnumber.push(curTrial-1); 
-			        data.targetilluminations.push(t_illuminations[indices[curTrial-1]])
-			        data.targetvalue.push(t_densities[indices[curTrial-1]]);
-			        data.targetblurvalues.push(t_blurs[indices[curTrial-1]]);
-			        data.targetheightsvalues.push(t_heights[indices[curTrial-1]]);
-			        data.targetvalueindex.push((t_densities[indices[curTrial-1]]/10));		
-			        data.targetblurindex.push(t_blurs[indices[curTrial-1]]*10+10); 		  
-			        data.targetheightindex.push(t_heights[indices[curTrial-1]]*200+10);
+			        data.targetilluminations.push(t_illuminations[image_index])
+			        data.targetvalue.push(t_densities[image_index]);
+			        data.targetblurvalues.push(t_blurs[image_index]);
+			        data.targetheightsvalues.push(t_heights[image_index]);
+			        data.targetvalueindex.push((t_densities[image_index]/10));		
+			        data.targetblurindex.push(t_blurs[image_index]*10+10); 		  
+			        data.targetheightindex.push(t_heights[image_index]*200+10);
 		    }
-
 		        if (curTrial>1){
 		        	data.response.push(densities[currentDensity])
 		        }		        
@@ -232,71 +254,7 @@
        document.getElementById("finalresult").innerHTML = data.response;
        document.getElementById("finalresulttarget").innerHTML = data.targetvalue;
        //////Generate the plot after experiment is done. 
-       TESTER = document.getElementById('dataplot');
-		var trace1 = {
-			  x: data.targetvalue,
-			  y: data.response,
-			  mode: 'markers',
-			  marker:{
-			  	size:data.targetheightindex,
-			  	color:data.targetblurindex
-			  }
-			};	
-
-		var trace2 = {
-			  x: numeric.linspace(60,260),
-			  y: numeric.linspace(60,260),
-			  mode: 'scatter',
-			    marker: {
-			    color: 'rgb(122, 142, 142)',
-			    size: 12
-			  },
-			};
-		var datamatrix = [ trace1,trace2 ];
-		var layout = {
-		  title:'Scatter Plot: darker color has higher blur',
-		  showlegend: false,
-		  xaxis: {
-		  	range: [60, 260],
-		    title: 'Target density',
-		    zeroline: true
-		  },
-		   yaxis: {
-		   	range: [60, 260],
-		    title: 'Match density',
-		    zeroline: true
-		  }
-		};
-		var trace3 = {
-			  x: data.targetheightindex,
-			  y: data.response,
-			  mode: 'markers',
-			marker:{
-				size:data.targetvalueindex,
-			  	color:data.targetblurindex
-			  }
-			};	
-		datamatrix2 = [trace3];	
-		var layout2 = {
-		  title:'Match density versus Height',
-		  showlegend: false,
-		  xaxis: {
-		  	range: [10, 24],
-		    title: 'Target heights',
-		    zeroline: true
-		  },
-		   yaxis: {
-		   	range: [60, 260],
-		    title: 'Match density',
-		    zeroline: true
-		  }
-		};
-		//Plotly.newPlot(TESTER, datamatrix, layout);
-		Plotly.newPlot(TESTER, datamatrix2, layout2);
-		//starting the sever side communication. 
-		//save the data to the file evoking serverside code.
-		// save data object as JSON. 
-		$.ajax
+       $.ajax
         ({
             type: "POST",
             dataType : 'json',
@@ -306,49 +264,121 @@
             success: function () {alert("Thanks!"); },
             failure: function() {alert("Error!");}
         }); 
+  //      TESTER = document.getElementById('dataplot');
+		// var trace1 = {
+		// 	  x: data.targetvalue,
+		// 	  y: data.response,
+		// 	  mode: 'markers',
+		// 	  marker:{
+		// 	  	size:data.targetheightindex,
+		// 	  	color:data.targetblurindex
+		// 	  }
+		// 	};	
+
+		// var trace2 = {
+		// 	  x: numeric.linspace(60,260),
+		// 	  y: numeric.linspace(60,260),
+		// 	  mode: 'scatter',
+		// 	    marker: {
+		// 	    color: 'rgb(122, 142, 142)',
+		// 	    size: 12
+		// 	  },
+		// 	};
+		// var datamatrix = [ trace1,trace2 ];
+		// var layout = {
+		//   title:'Scatter Plot: darker color has higher blur',
+		//   showlegend: false,
+		//   xaxis: {
+		//   	range: [60, 260],
+		//     title: 'Target density',
+		//     zeroline: true
+		//   },
+		//    yaxis: {
+		//    	range: [60, 260],
+		//     title: 'Match density',
+		//     zeroline: true
+		//   }
+		// };
+		// var trace3 = {
+		// 	  x: data.targetheightindex,
+		// 	  y: data.response,
+		// 	  mode: 'markers',
+		// 	marker:{
+		// 		size:data.targetvalueindex,
+		// 	  	color:data.targetblurindex
+		// 	  }
+		// 	};	
+		// datamatrix2 = [trace3];	
+		// var layout2 = {
+		//   title:'Match density versus Height',
+		//   showlegend: false,
+		//   xaxis: {
+		//   	range: [10, 24],
+		//     title: 'Target heights',
+		//     zeroline: true
+		//   },
+		//    yaxis: {
+		//    	range: [60, 260],
+		//     title: 'Match density',
+		//     zeroline: true
+		//   }
+		// };
+		// //Plotly.newPlot(TESTER, datamatrix, layout);
+		// Plotly.newPlot(TESTER, datamatrix2, layout2);
+		//starting the sever side communication. 
+		//save the data to the file evoking serverside code.
+		// save data object as JSON. 
+
         // end the communicaiton with server. 
 	}//here is end of plotting, saving data, etc.
         }
        // if the experiment is over, plot the results and save plot. 
       
-
        });
 // user click on button to change images
-$(function() {
-  var changed = false;
-  $('#densityUp, #densityDown').click(function () {
-  	//alert(currentDensity);
-    if (this.id == 'densityDown') {
-       if (currentDensity + 1 < numDensities) {
-       		$('#densityUp').css('background', '#768d87');
-			currentDensity = currentDensity + 1;
-			changed = true;
-		}
-		else if (currentDensity+1  == numDensities){
-			$(this).css('background', '#D3D3D3');
-		}
-    }
-    else if (this.id == 'densityUp') {
-       if (currentDensity - 1 > -1) {
-       	    $('#densityDown').css('background', '#768d87');
-			currentDensity = currentDensity - 1;
-			changed = true;
+// slider
+$(function () {
+    $("#densityVal").on("slide", function(event, ui) {
+    $('img#match').attr('src', 'jpg/soap_map_b' + blurs[matchblurindex] + '_s' + t_heights[indices[curTrial-1]] + '_' + t_illuminations[indices[curTrial-1]] + '_d' + densities[$(this).slider("option", "value")] + '_q4096.jpg');
+    // update the currentDensity with the slider value. 
+    currentDensity = $(this).slider("option", "value");
+     });  
+});
+// $(function() {
+//   var changed = false;
+//   $('#densityUp, #densityDown').click(function () {
+//   	//alert(currentDensity);
+//     if (this.id == 'densityDown') {
+//        if (currentDensity + 1 < numDensities) {
+//        		$('#densityUp').css('background', '#768d87');
+// 			currentDensity = currentDensity + 1;
+// 			changed = true;
+// 		}
+// 		else if (currentDensity+1  == numDensities){
+// 			$(this).css('background', '#D3D3D3');
+// 		}
+//     }
+//     else if (this.id == 'densityUp') {
+//        if (currentDensity - 1 > -1) {
+//        	    $('#densityDown').css('background', '#768d87');
+// 			currentDensity = currentDensity - 1;
+// 			changed = true;
 			
-		}
-		else if (currentDensity  == 0){
-			$(this).css('background', '#D3D3D3');
-		}
-	}
-  // If we didn't hit a boundary, update the current cell
-		if (changed) {
-			//$('span#height').text(targetheights[targetheightindex]);
-			//$('span#blur').text(blurs[4]);
-			//$('span#density').text(densities[currentDensity]);
-			//$('span#illumination').text(illuminations[currentIllumination])
-			$('img#match').attr('src', 'png_cropped/soap_map_b' + blurs[matchblurindex] + '_s' + t_heights[indices[curTrial-1]] + '_' + t_illuminations[indices[curTrial-1]] + '_d' + densities[currentDensity] + '_q4096.png');
-		}
-  });
- });
+// 		}
+// 		else if (currentDensity  == 0){
+// 			$(this).css('background', '#D3D3D3');
+// 		}
+// 	}
+//   // If we didn't hit a boundary, update the current cell
+// 		if (changed) {
+// 			//$('span#height').text(targetheights[targetheightindex]);
+// 			//$('span#blur').text(blurs[4]);
+// 			//$('span#density').text(densities[currentDensity]);
+// 			//$('span#illumination').text(illuminations[currentIllumination])
+// 			$('img#match').attr('src', 'jpg/soap_map_b' + blurs[matchblurindex] + '_s' + t_heights[indices[curTrial-1]] + '_' + t_illuminations[indices[curTrial-1]] + '_d' + densities[currentDensity] + '_q4096.jpg');
+// 		}
+//   });
+//  });
 // User navigates table using keyboard
 	$(document).keydown(function(e) {
 			var c = "";
@@ -368,8 +398,9 @@ $(function() {
 			} else if (e.which == 39) {
 				// Right Arrow
 				if (currentDensity + 1 < numDensities) {
-					$('#densityUp').css('background', '#768d87');
+					//$('#densityUp').css('background', '#768d87');
 					currentDensity = currentDensity + 1;
+					$("#densityVal").slider("value", currentDensity);
 					changed = true;
 				}
 				else if (currentDensity+1  == numDensities){
@@ -378,8 +409,10 @@ $(function() {
 			} else if (e.which == 37) {
 				// left Arrow
 				if (currentDensity - 1 > -1) {
-					$('#densityDown').css('background', '#768d87');
+					//$('#densityDown').css('background', '#768d87');
+					
 					currentDensity = currentDensity - 1;
+					$("#densityVal").slider("value", currentDensity);
 					changed = true;
 				}
 			else if (currentDensity  == 0){
@@ -412,7 +445,7 @@ $(function() {
 				// $('span#blur').text(blurs[4]);
 				//$('span#density').text(densities[currentDensity]);
 				// $('span#illumination').text(illuminations[currentIllumination]);	
-				$('img#match').attr('src', 'png_cropped/soap_map_b' + blurs[matchblurindex] + '_s' + t_heights[indices[curTrial-1]] + '_' + t_illuminations[indices[curTrial-1]] + '_d' + densities[currentDensity] + '_q4096.png');
+				$('img#match').attr('src', 'jpg/soap_map_b' + blurs[matchblurindex] + '_s' + t_heights[indices[curTrial-1]] + '_' + t_illuminations[indices[curTrial-1]] + '_d' + densities[currentDensity] + '_q4096.jpg');
 			}
 
 		});//]]> 
@@ -430,10 +463,11 @@ $(function() {
        <td>
           <div id="instruction">
                  <h2 style="margin-bottom:10pt" align = "center">Material Matching Task<br /></h2>
-                 <p id = "intro.part1"><font size = "3" face = "verdana" font color = #347235>The soap in the images are made with different materials. Your task is to match the appearance of the object in the right image to the left. To do so, you adjust the "opacity" of the object in the right image (match) to match the perceived translucency to the object on the left (target). 
+                 <p id = "intro.part1"><font size = "3" face = "verdana" font color = #347235>The soap in the images are made with different materials. Your task is to match the material properties of the soap in the right image to the left. To do so, you adjust the "opacity" of the object in the right image (match) to match the perceived translucency to the object on the left (target). Notice that from trial to trial, the lighting direction can change (either side-lit or back-lit).
                  </br>
                  </br>
-                 You can use either the left and right arrow keys or the buttons to adjust the match image. The left arrow key makes the object appear less opaque and the right key makes the object appear more opaque. Please examine the images carefully before you hit "Next" button when your match will be recorded. Notice, there will be four blocks of the experiment. Please press "start" button to start the trials.</p>
+                 You can use either the left and right arrow keys or the slider to adjust the match image.
+                 PLEADE don't use both within the same trial. The left arrow key makes the object appear less opaque and the right key makes the object appear more opaque. Please examine the images carefully before you hit "Next" button when your match will be recorded. Notice, there will be four blocks of the experiment. Please press "start" button to start the trials.</p>
           </div>
        </td>
 </table>
@@ -450,18 +484,23 @@ $(function() {
                         </tr>
                   <tr>
                 <td align = "left" >
-                      <img id = "sample" src="png_cropped/soap_map_b0.4_s0.01_sidelit_d100_q4096.png" width = "590" height = "350"/>
+                      <img id = "sample" src="jpg/soap_map_b0.4_s0.01_sidelit_d100_q4096.jpg" width = "590" height = "350"/>
               	</td>
                <td align = "right" >
-               <img id = "match" src="png_cropped/soap_map_b1.2_s0.02_sidelit_d131_q4096.png" width = "590" height = "350"/>
+               <img id = "match" src="jpg/soap_map_b1.2_s0.02_sidelit_d131_q4096.jpg" width = "590" height = "350"/>
                 </td>
         </table>
-        <div id='buttons'>      	
+<!--         <div id='buttons'>      	
 			<input type = "button" id = "densityUp" class = 'myButton' value="LessOpaque" onClick="changeMatchValues('densityUp')">
 			<input type = "button" id = "densityDown" class = 'myButton' value="More Opaque" onClick="changeMatchValues('densityDown')">			
- 		</div> 
+ 		</div>  -->
  		          
-    
+    <div id="density" style="margin-bottom: 10px">
+        Density control:
+        <!--<input id="densityVal" type="range">-->
+        <div id="densityVal" style="width:400px; margin: 10px"></div>
+    </div>
+
       <div id='Nexttrial'>
       	<TABLE>
          Progress: Trial <span id="curTrial">0</span>/40</div>
