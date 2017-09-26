@@ -1,0 +1,339 @@
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <script src="http://code.jquery.com/jquery-1.12.4.min.js"</script>
+    <script src="plotly/plotly-latest.min.js"></script>
+    <script src="jquery-csv-master/src/jquery.csv.js"></script>
+    <script src="http://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="Experiment1.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+</head>
+<body>
+    <table style="margin-bottom:0pt" width = "1000" border = "0">
+        <td>
+            <div id="instruction">
+                <h2 style="margin-bottom:0pt" align="center">Material Matching Task<br></h2>
+                <p id = "intro.part1"><font size="3" face="verdana" color="#347235">
+                    The soap in the images are made with different materials. Which image contains the object that appear to be more translucent? Click on the image to make your choices.
+                </p>
+            </div>
+        </td>
+    </table>
+    <div id="images" style="text-align: center">
+        <table id="mainTable" border="0" width="780" cellpadding="0">
+            <tr>
+                <td id="target" style="text-align: center"><span id="label_left"><b>Left</b></span></td>
+                <td id="match" style="text-align: center"><span id="label_right"><b>Right</b></span></td>
+            </tr>
+            <tr>
+            <div class="bothimages" id="thumbnail_1">
+                <td align="left" >
+                    <img id="sample" class='leftright' src="jpg/soap_map_b0.4_s0.01_sidelit_d100_q4096.jpg" width="570" height="350">
+                </td>
+                <td align = "right" >
+                    <img id="match" class='leftright' src="jpg/soap_map_b1.2_s0.01_sidelit_d131_q4096.jpg" width="570" height="350">
+                </td>
+            </div>
+            </tr>
+        </table>
+
+        <img id="loading_icon" src="loading-icon.gif" alt="loading" style="margin: 0 auto 0 auto; display:none">
+
+        <div id='Nexttrial'>
+           Progress: Trial <span id="curTrial">1</span>/40<br>
+           <button type="button" id="Next" value="Start" class="NextButton" >Back</button>
+        </div>
+        <br>
+        <div id="results">
+            Your responses are: <span id="finalresult"></span>
+        </div>
+    </div>
+    <div id="dataplot" class="plot">
+    </div>
+    <img id="jpg-export">
+
+    <script type="text/javascript">
+        $(window).load(function(){
+            "use strict";
+            var subject = 'test';
+            var blocknumber = 1;
+            var heights = ["0.01", "0.02", "0.03", "0.04", "0.05"];
+            var originaldensities = ["74", "76", "79", "82", "84", "87", "90", "93", "97", "100", "103", "107", "111", "114", "118", "122", "127", "131", "136", "140", "145", "150", "155", "160", "166", "172", "178", "184", "190", "197", "203", "210", "218", "225", "233", "241", "249", "258", "266", "276", "285", "295"];
+            var densities = ["74","82","90","100","111","122","136","150","166","184","203","225","249","276","295"];
+            var blurs = ["0.2", "0.4", "0.6", "0.8", "1.0", "1.2", "1.4", "1.6", "1.8", "2.0", "2.2", "2.4", "2.6", "2.8", "3.0"];
+            var illuminations = ["sidelit","backlit"];
+            var db_path = 'jpg';
+            var numHeights = heights.length;
+            var numDensities = densities.length;
+            var numBlurs = blurs.length;
+            var numIlluminations = illuminations.length;
+
+            //densities and blurs are the values that differ between match and target.
+            var matchblurindex = 5; //match blur is always at a fixed value.
+            //var targetdensities = ["114","140","178","218"];
+            var targetdensities = ["90","111","136","150","184","225"];
+            var targetblurs = ["0.4","1.0","1.4", "2.0","2.8"];
+            var targetheights = heights;
+            var t_blurs = [];
+            var t_densities = [];
+            var t_heights = [];
+            var t_illuminations = [];
+
+            var ready = false, loaded = 0;
+            var img = new Array(2);
+
+            // // generate randomized conditions.
+            // for (var k=0;k<numIlluminations;k++) {
+            //     for (var n=0;n<numHeights;n++){
+            //         for(var i=0;i<targetdensities.length;i++){
+            //             for(var j=0;j<targetblurs.length;j++){
+            //                 t_blurs.push(targetblurs[j]);
+            //                 t_densities.push(targetdensities[i]);
+            //                 t_heights.push(heights[n]);
+            //                 t_illuminations.push(illuminations[k]);
+            //             }
+            //         }
+            //     }
+            // }
+            // var currentHeight = 0;
+            // var currentBlur = matchblurindex;
+            // var currentDensity = 1;
+            // var currentIllumination = 0;
+
+            // var matchdensityindex = 1;
+            // var targetheightindex = 0;
+            var curTrial = 0;
+            var result = [];
+            var editing = false;
+            var chosen = "";
+            
+            //shuffle an array
+/*            Array.prototype.shuffle = function() {
+                var tmp, rand;
+                for(var i =0; i < this.length; i++){
+                    rand = Math.floor(Math.random() * this.length);
+                    tmp = this[i];
+                    this[i] = this[rand];
+                    this[rand] = tmp;
+                }
+            }
+            */
+            var indices = [];
+            function getQueryVariable(variable) {
+                var query = window.location.search.substring(1);
+                var vars = query.split("&");
+                for (var i=0;i<vars.length;i++) {
+                    var pair = vars[i].split("=");
+                    if(pair[0] == variable) return pair[1];
+                }
+                return false;
+            }
+            // read the condition file from server
+            $(function() {
+                subject = prompt("Please enter your initials");
+                var bn = getQueryVariable("blocknumber");
+                blocknumber = bn ? bn : 1;
+                var base = "conditions/block", filetype = '.csv';
+                var conditionfile = base.concat(blocknumber, filetype);
+                $.ajax({
+                    type: "Get",
+                    url: conditionfile,
+                    async: false,
+                    dataType: "text",
+                    success: function(data) {processData(data);}
+
+                });
+            });
+            var condition_index;
+            var left_indices;
+            var right_indices;
+            var height_index;
+            var blur_index;
+            var lighting_index;
+
+            function processData(thedata) {
+                "use strict";
+                condition_index = [];
+                left_indices = [];
+                right_indices = [];
+                height_index = [];
+                blur_index = [];
+                lighting_index = [];
+                var condition_data = $.csv.toArrays(thedata);
+
+                for (var i=1;i<condition_data.length;i++) {
+                    condition_index.push(condition_data[i][0]);
+                    left_indices.push(condition_data[i][2]);
+                    right_indices.push(condition_data[i][3]);
+                    height_index.push(condition_data[i][4]);
+                    blur_index.push(condition_data[i][5]);
+                    lighting_index.push(condition_data[i][6]);
+                }
+            }
+            //alert(left_indices);
+            //indices for left and right images, this should be reading from a file.
+            //var left_indices =[95,9,4,5,12,15,8,24,41,83];
+            //var right_indices =[87,2,10,11,6,7,13,17,49,88];
+
+            var totalconditions = 40;
+
+            //console.log("Block number = " + blocknumber);
+            // final result object.
+            var data = {
+                subject:subject,
+                blocknumber:blocknumber,
+                trialnumber:[],
+                choices:[],
+                left_image:[],
+                right_image:[],
+                targetblurvalues:[],
+                targetilluminations:[],
+                targetvalue:[], //target densities
+                targetheightsvalues:[],
+                matchblurvalues:[],
+                matchilluminations:[],
+                matchvalue:[], //match densities
+                matchheightsvalues:[]
+            };
+            // this is for the user to go to the Next trial, where it updates both match and target.
+
+            var generateWebpage = function(){
+                //setTimeout(addBorder,500);
+                setTimeout(function(){
+                    //$(this).addClass('highlight');
+                    $("#mainTable").css("display", "none");
+                    $("#Nexttrial").css("display", "none");
+                    $("#selection").css("display", "none");
+                    $("#loading_icon").css("display", "block");
+
+                    // if trial number is less than the total trial number,start a new pair.
+                    if (curTrial <= totalconditions){  
+                        if(curTrial<=totalconditions){
+                            $('#curTrial').text(curTrial+1);
+                        }
+                        //this is the image index of the target image.
+                        var left_index = left_indices[curTrial];
+                        var right_index = right_indices[curTrial];
+                        var fnames = [];
+                        var a = Math.random();
+                        if (a>0.5){
+                            var leftdensity = originaldensities[left_index];
+                            var rightdensity = originaldensities[right_index];
+                        }
+                         else{
+                             var leftdensity = originaldensities[right_index];
+                             var rightdensity = originaldensities[left_index];
+                     }
+                       
+                        // randimize left or right order
+                        fnames.push('jpg/soap_map_b' + blurs[blur_index[curTrial]] + '_s' + heights[height_index[curTrial]] + '_'
+                                + illuminations[lighting_index[curTrial]] + '_d' + leftdensity + '_q4096.jpg');
+                        fnames.push('jpg/soap_map_b' + blurs[blur_index[curTrial]] + '_s' + heights[height_index[curTrial]] + '_'
+                                +  illuminations[lighting_index[curTrial]] + '_d' + rightdensity + '_q4096.jpg');
+
+                        //console.log(fnames);
+                        //console.log(t_blurs[image_index] + ' <=> ' + blurs[matchblurindex]);
+
+                        ready = false; loaded = 0;
+                        var img = new Array(2);
+                        for ( var i = 0; i < 2; ++i ) {
+                            img[i] = new Image();
+                            img[i].onload = function() {
+                                if ( ++loaded == fnames.length ) {
+                                    setTimeout(function(){
+                                        $("img#sample").attr("src", fnames[0]);
+                                        $("img#sample").removeClass('highlight');
+                                        $("img#match").attr("src", fnames[1]);
+                                        $("img#match").removeClass('highlight');
+                                        $("#mainTable").css("display", "block");
+                                        $("#Nexttrial").css("display", "block");
+                                        $("#selection").css("display", "block");
+                                        $("#loading_icon").css("display", "none");
+                                        //$('#label_left').html(leftdensity);
+                                        //$('#label_right').html(rightdensity);
+                                        ready = true;
+                                    }, 250);
+                                }
+                            };
+                            img[i].src = fnames[i];
+                        }
+
+                        // save the user's responses of previous trials.
+                        if (curTrial<=totalconditions){
+                            data.trialnumber.push(curTrial);
+                            data.targetvalue.push(leftdensity);
+                            data.matchvalue.push(rightdensity);
+                            data.choices.push(chosen);
+                            data.targetilluminations.push(illuminations[lighting_index[curTrial]]);
+                            data.targetblurvalues.push(blurs[blur_index[curTrial]]);
+                            data.targetheightsvalues.push(heights[height_index[curTrial]]);
+                            data.matchilluminations.push(illuminations[lighting_index[curTrial]]);
+                            data.matchblurvalues.push(blurs[blur_index[curTrial]]);
+                            data.matchheightsvalues.push(heights[height_index[curTrial]]);
+                        }
+        if (curTrial>=totalconditions){
+                            $("img").hide();
+                            $("#Next").hide();
+                            $("#instruction").hide();
+                            $("#selection").hide();
+                            $("#curTrial").text('40');
+                            $('#label_left').hide();
+                            $('#label_right').hide();
+                            //if (button.text() === "Back") {
+                            //$("buttons").text("You are done!");
+                            //}
+                            //alert(data.choices);
+                            document.getElementById("finalresult").innerHTML = data.choices;
+
+                           //////Generate the plot after experiment is done.
+                            $.ajax({
+                               type: "POST",
+                               dataType : 'json',
+                               async: false,
+                               url: 'phpcode/saveresults.php',
+                               data: { data: JSON.stringify(data) },
+                               success: function () {alert("Thanks!"); },
+                               failure: function() {alert("Error!");}
+                            });
+                    }//here is end of plotting, saving data, etc.
+            }
+                    // if the experiment is over, plot the results and save plot.
+                }, 500);
+            }
+            $('.leftright').click(function() {
+                curTrial = curTrial + 1;
+                $('img.highlight').removeClass('highlight');
+                $(this).toggleClass('highlight');
+                var id = $(this).attr("id");
+                //alert(id);
+                if (id === "sample") {
+                    chosen = 'left';}
+
+                else {
+                    chosen = 'right';
+                    }
+                generateWebpage();
+            });
+            $("#Next").click(function() {
+                curTrial = curTrial - 1;
+                generateWebpage(); 
+
+            })
+            //radio button
+            // $('input:radio[name="radioSelection"]').change(function() {
+            //     if ($(this).val() == 'Left') {
+            //         if (ready){
+            //             chosen = $(this).val();
+            //         }
+            //     }
+            //     if ($(this).val() == 'Right') {
+            //         if (ready){
+            //             chosen = $(this).val();
+            //         }
+            //     }
+            // });
+
+        });
+    </script>
+</body>
+</html>
