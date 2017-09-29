@@ -3,7 +3,7 @@ close all;
 % stimuli number
 N = 26;
 % gaussFilter
-k = 6;  % this parameter is tunable
+k = 4;  % this parameter is tunable
 gaussFilter = gausswin(k*2*N,5); 
 
 % stimuli # after filter
@@ -69,9 +69,8 @@ for iBlock = 1:2
         conditionStruct(n).blur = randi(15)-1;
         conditionStruct(n).lighting = randi(2)-1;
     end
-    
-    newTestFileName = fullfile(['block',num2str(iBlock), '.csv']);
-    WriteStructsToCSV(newTestFileName, conditionStruct);
+    newTestFileName = fullfile(['soap_conditions','_',num2str(iBlock), '.txt']);
+    WriteStructsToText(newTestFileName, conditionStruct);
 end
 
 
