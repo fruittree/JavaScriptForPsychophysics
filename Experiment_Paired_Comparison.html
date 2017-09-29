@@ -173,6 +173,7 @@
                     lighting_index.push(condition_data[i][6]);
                 }
             }
+            //alert(blur_index);
             //alert(left_indices.length);
             //indices for left and right images, this should be reading from a file.
             //var left_indices =[95,9,4,5,12,15,8,24,41,83];
@@ -187,8 +188,6 @@
                 blocknumber:blocknumber,
                 trialnumber:[],
                 choices:[],
-                left_image:[],
-                right_image:[],
                 targetblurvalues:[],
                 targetilluminations:[],
                 targetvalue:[], //target densities
@@ -229,10 +228,10 @@
                      }                       
                         // randimize left or right order
 
-                        fnames.push('jpg/soap_map_b' + blurs[blur_index[curTrial]] + '_s' + heights[height_index[curTrial]] + '_'
-                                + illuminations[lighting_index[curTrial]] + '_d' + leftdensity + '_q4096.jpg');
-                        fnames.push('jpg/soap_map_b' + blurs[blur_index[curTrial]] + '_s' + heights[height_index[curTrial]] + '_'
-                                +  illuminations[lighting_index[curTrial]] + '_d' + rightdensity + '_q4096.jpg');
+                        fnames.push('jpg/soap_map_b' + blurs[blur_index[curTrial-1]] + '_s' + heights[height_index[curTrial-1]] + '_'
+                                + illuminations[lighting_index[curTrial-1]] + '_d' + leftdensity + '_q4096.jpg');
+                        fnames.push('jpg/soap_map_b' + blurs[blur_index[curTrial-1]] + '_s' + heights[height_index[curTrial-1]] + '_'
+                                +  illuminations[lighting_index[curTrial-1]] + '_d' + rightdensity + '_q4096.jpg');
 
                         //console.log(fnames);
                         //console.log(t_blurs[image_index] + ' <=> ' + blurs[matchblurindex]);
@@ -263,16 +262,16 @@
 
                         // save the user's responses of previous trials.
                         if (curTrial<=totalconditions){
-                            data.trialnumber.push(curTrial);
+                            data.trialnumber.push(curTrial-1);
                             data.targetvalue.push(leftdensity);
                             data.matchvalue.push(rightdensity);
                             data.choices.push(chosen);
-                            data.targetilluminations.push(illuminations[lighting_index[curTrial]]);
-                            data.targetblurvalues.push(blurs[blur_index[curTrial]]);
-                            data.targetheightsvalues.push(heights[height_index[curTrial]]);
-                            data.matchilluminations.push(illuminations[lighting_index[curTrial]]);
-                            data.matchblurvalues.push(blurs[blur_index[curTrial]]);
-                            data.matchheightsvalues.push(heights[height_index[curTrial]]);
+                            data.targetilluminations.push(illuminations[lighting_index[curTrial-1]]);
+                            data.targetblurvalues.push(blurs[blur_index[curTrial-1]]);
+                            data.targetheightsvalues.push(heights[height_index[curTrial-1]]);
+                            data.matchilluminations.push(illuminations[lighting_index[curTrial-1]]);
+                            data.matchblurvalues.push(blurs[blur_index[curTrial-1]]);
+                            data.matchheightsvalues.push(heights[height_index[curTrial-1]]);
                         }
         if (curTrial>=totalconditions){
                             $("img").hide();
