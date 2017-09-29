@@ -40,7 +40,7 @@
         <img id="loading_icon" src="loading-icon.gif" alt="loading" style="margin: 0 auto 0 auto; display:none">
 
         <div id='Nexttrial'>
-           Progress: Trial <span id="curTrial">1</span>/40<br>
+           Progress: Trial <span id="curTrial">1</span>/62<br>
            <button type="button" id="Next" value="Start" class="NextButton" >Back</button>
         </div>
         <br>
@@ -58,8 +58,11 @@
             var subject = 'test';
             var blocknumber = 1;
             var heights = ["0.01", "0.02", "0.03", "0.04", "0.05"];
-            var originaldensities = ["74", "76", "79", "82", "84", "87", "90", "93", "97", "100", "103", "107", "111", "114", "118", "122", "127", "131", "136", "140", "145", "150", "155", "160", "166", "172", "178", "184", "190", "197", "203", "210", "218", "225", "233", "241", "249", "258", "266", "276", "285", "295"];
+            // var originaldensities = ["74", "76", "79", "82", "84", "87", "90", "93", "97", "100", "103", "107", "111", "114", "118", "122", "127", "131", "136", "140", "145", "150", "155", "160", "166", "172", "178", "184", "190", "197", "203", "210", "218", "225", "233", "241", "249", "258", "266", "276", "285", "295"];
+            var originaldensities = ["74", "79", "84", "90", "97", "103", "111", "118", "122", "131", "136", "145", "150", "160", "172", "184","197", "210", "225", "233", "241", "258", "266", "276", "285", "295"];
+
             var densities = ["74","82","90","100","111","122","136","150","166","184","203","225","249","276","295"];
+
             var blurs = ["0.2", "0.4", "0.6", "0.8", "1.0", "1.2", "1.4", "1.6", "1.8", "2.0", "2.2", "2.4", "2.6", "2.8", "3.0"];
             var illuminations = ["sidelit","backlit"];
             var db_path = 'jpg';
@@ -170,12 +173,12 @@
                     lighting_index.push(condition_data[i][6]);
                 }
             }
-            //alert(left_indices);
+            //alert(left_indices.length);
             //indices for left and right images, this should be reading from a file.
             //var left_indices =[95,9,4,5,12,15,8,24,41,83];
             //var right_indices =[87,2,10,11,6,7,13,17,49,88];
 
-            var totalconditions = 40;
+            var totalconditions = 62;
 
             //console.log("Block number = " + blocknumber);
             // final result object.
@@ -223,9 +226,9 @@
                          else{
                              var leftdensity = originaldensities[right_index];
                              var rightdensity = originaldensities[left_index];
-                     }
-                       
+                     }                       
                         // randimize left or right order
+
                         fnames.push('jpg/soap_map_b' + blurs[blur_index[curTrial]] + '_s' + heights[height_index[curTrial]] + '_'
                                 + illuminations[lighting_index[curTrial]] + '_d' + leftdensity + '_q4096.jpg');
                         fnames.push('jpg/soap_map_b' + blurs[blur_index[curTrial]] + '_s' + heights[height_index[curTrial]] + '_'
@@ -276,7 +279,7 @@
                             $("#Next").hide();
                             $("#instruction").hide();
                             $("#selection").hide();
-                            $("#curTrial").text('40');
+                            //$("#curTrial").text('62');
                             $('#label_left').hide();
                             $('#label_right').hide();
                             //if (button.text() === "Back") {
@@ -290,7 +293,7 @@
                                type: "POST",
                                dataType : 'json',
                                async: false,
-                               url: 'phpcode/saveresults.php',
+                               url: 'paired_comparison_result/saveresults.php',
                                data: { data: JSON.stringify(data) },
                                success: function () {alert("Thanks!"); },
                                failure: function() {alert("Error!");}
