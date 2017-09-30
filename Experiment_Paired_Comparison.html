@@ -31,7 +31,7 @@
                     <img id="sample" class='leftright' src="jpg/soap_map_b0.4_s0.01_sidelit_d100_q4096.jpg" width="570" height="350">
                 </td>
                 <td align = "right" >
-                    <img id="match" class='leftright' src="jpg/soap_map_b1.2_s0.01_sidelit_d131_q4096.jpg" width="570" height="350">
+                    <img id="match" class='leftright' src="jpg/soap_map_b0.4_s0.01_sidelit_d131_q4096.jpg" width="570" height="350">
                 </td>
             </div>
             </tr>
@@ -40,7 +40,7 @@
         <img id="loading_icon" src="loading-icon.gif" alt="loading" style="margin: 0 auto 0 auto; display:none">
 
         <div id='Nexttrial'>
-           Progress: Trial <span id="curTrial">1</span>/62<br>
+           Progress: Trial <span id="curTrial">0</span>/70<br>
            <button type="button" id="Next" value="Start" class="NextButton" >Back</button>
         </div>
         <br>
@@ -179,7 +179,7 @@
             //var left_indices =[95,9,4,5,12,15,8,24,41,83];
             //var right_indices =[87,2,10,11,6,7,13,17,49,88];
 
-            var totalconditions = 62;
+            var totalconditions = 70;
 
             //console.log("Block number = " + blocknumber);
             // final result object.
@@ -210,12 +210,12 @@
 
                     // if trial number is less than the total trial number,start a new pair.
                     if (curTrial <= totalconditions){  
-                        if(curTrial<=totalconditions){
-                            $('#curTrial').text(curTrial+1);
+                        if(curTrial<totalconditions){
+                            $('#curTrial').text(curTrial);
                         }
                         //this is the image index of the target image.
-                        var left_index = left_indices[curTrial];
-                        var right_index = right_indices[curTrial];
+                        var left_index = left_indices[curTrial-1];
+                        var right_index = right_indices[curTrial-1];
                         var fnames = [];
                         var a = Math.random();
                         if (a>0.5){
@@ -235,7 +235,6 @@
 
                         //console.log(fnames);
                         //console.log(t_blurs[image_index] + ' <=> ' + blurs[matchblurindex]);
-
                         ready = false; loaded = 0;
                         var img = new Array(2);
                         for ( var i = 0; i < 2; ++i ) {
@@ -253,6 +252,8 @@
                                         $("#loading_icon").css("display", "none");
                                         //$('#label_left').html(leftdensity);
                                         //$('#label_right').html(rightdensity);
+                                        $("#finalresult").html(data.choices);
+
                                         ready = true;
                                     }, 250);
                                 }
@@ -261,11 +262,13 @@
                         }
 
                         // save the user's responses of previous trials.
+
+                        
                         if (curTrial<=totalconditions){
                             data.trialnumber.push(curTrial-1);
+                            data.choices.push(chosen);
                             data.targetvalue.push(leftdensity);
                             data.matchvalue.push(rightdensity);
-                            data.choices.push(chosen);
                             data.targetilluminations.push(illuminations[lighting_index[curTrial-1]]);
                             data.targetblurvalues.push(blurs[blur_index[curTrial-1]]);
                             data.targetheightsvalues.push(heights[height_index[curTrial-1]]);
@@ -274,6 +277,8 @@
                             data.matchheightsvalues.push(heights[height_index[curTrial-1]]);
                         }
         if (curTrial>=totalconditions){
+                            // push in the last response
+                            data.choices.push(chosen);
                             $("img").hide();
                             $("#Next").hide();
                             $("#instruction").hide();
