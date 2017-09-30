@@ -11,11 +11,12 @@ import os
 #subjects = ['ar','bx','cz','hn','sk','ju','ww']
 #for nSubject in range(len(subjects)):
     #subject = subjects[nSubject]
-subject = 'pj'
+subject = 'bx'
 
 script_dir = os.path.dirname(__file__)
 results_dir = os.path.join(script_dir, 'outputplot/') 
 s = {}
+print script_dir
 
 # read the data from json file. 
 for i in range(2):    
@@ -24,6 +25,7 @@ for i in range(2):
         s[i] = json.load(json_file)
 
 # concatenate the data across the blocks
+trialnumber = s[0]['trialnumber']+s[1]['trialnumber']
 responses = s[0]['choices']+s[1]['choices']
 leftdensity = s[0]['targetvalue']+s[1]['targetvalue']
 rightdensity = s[0]['matchvalue']+s[1]['matchvalue']
@@ -32,6 +34,8 @@ height = s[0]['targetheightsvalues']+s[1]['targetheightsvalues']
 lighting = s[0]['targetilluminations']+s[1]['targetilluminations']
 
 totalconditions = len(leftdensity)
+
+
 correct = 0
 lighting_response = {}
 lighting_response['backlit'] = 0
@@ -49,8 +53,10 @@ response_list = []
 
 # compute overall percent correctness.
 for i in range(totalconditions):
-    if (leftdensity[i] < rightdensity[i]) and (responses[i] =='left')\
-    or (leftdensity[i]>rightdensity[i]) and (responses[i] == 'right'):
+    if ((int(leftdensity[i]) < int(rightdensity[i])) and (responses[i+1] =="left")):
+        correct = correct+1
+        response_list.append(1)
+    elif (int((leftdensity[i]) > int(rightdensity[i])) and (responses[i+1] == "right")):
         correct = correct+1
         response_list.append(1)
 
@@ -71,30 +77,49 @@ for i in range(totalconditions):
             height_response['0.05']+=1 
 
     else:
-        response_list.append(0)
+        print  leftdensity[i],rightdensity[i],responses[i+1]
+        print 'here'
 
-                
-percent_correct = correct/float(totalconditions)
-print percent_correct
+
+percent_correct = correct/float(140)
+print "number of correct responses", percent_correct
 
 blur_list = zip(response_list,blur)
+#print blur_list
 
 # initialize the dictionary
 for key,value in blur_list:
-    blur_response[str(value)] = 0
+    blur_response[value] = 0
 
 # make histograms
 for key,value in blur_list:
     if key == 1:
-        blur_response[str(value)]+=1
+        blur_response[value]+=1
+
 
 plt.figure()
+x = np.arange(len(blur_response))
+plt.bar(x,blur_response.values(), align='center', width=0.5)
+plt.xticks(x, blur_response.keys())
+ymax = max(blur_response.values()) + 1
+plt.title('Histogram of correct responses over blur levels')
+plt.ylim(0, ymax+1)
+plt.show()
+
 x = np.arange(len(height_response))
 plt.bar(x,height_response.values(), align='center', width=0.5)
-plt.xticks(x, height_response.keys())
-ymax = max(height_response.values()) + 1
+plt.xticks(x, blur_response.keys())
+ymax = max(blur_response.values()) + 1
 plt.title('Histogram of correct responses over heights')
-plt.ylim(0, ymax)
+plt.ylim(0, ymax+1)
+plt.show()
+
+x = np.arange(len(lighting_response))
+plt.bar(x,lighting_response.values(), align='center', width=0.5)
+plt.xticks(x, lighting_response.keys())
+ymax = max(lighting_response.values()) + 1
+plt.title('Histogram of correct responses over lighting')
+plt.ylim(0, ymax+1)
 plt.show()
 
 
